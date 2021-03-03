@@ -1,110 +1,70 @@
-version: '3.8'
-
+version: '2.2'
 services:
-  kes-md-01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-    restart: unless-stopped
-    container_name: kes-md-01
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+    container_name: es01
     environment:
-      - cluster.name=kes-cluster
-      - node.name=kes-md-01
-      - discovery.seed_hosts=kes-md-02, kes-md-03
-      - cluster.initial_master_nodes=kes-md-01, kes-md-02, kes-md-03
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xms512m"
-      - http.port=9201
-      - http.host=0.0.0.0
-      - transport.port=9301
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - data01:/usr/share/elasticsearch/data
     ports:
-      - 9201:9201
+      - 9200:9200
     networks:
-      - esnet
-    mem_limit: 1g
-
-  kes-md-02:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-    restart: unless-stopped
-    container_name: kes-md-02
+      - elastic
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+    container_name: es02
     environment:
-      - cluster.name=kes-cluster
-      - node.name=kes-md-02
-      - discovery.seed_hosts=kes-md-01, kes-md-03
-      - cluster.initial_master_nodes=kes-md-01, kes-md-02, kes-md-03
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xms512m"
-      - http.port=9202
-      - http.host=0.0.0.0
-      - transport.port=9302
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - esdata2:/usr/share/elasticsearch/data
-    ports:
-      - 9202:9202
+      - data02:/usr/share/elasticsearch/data
     networks:
-      - esnet
-    mem_limit: 1g
-
-  kes-md-03:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-    restart: unless-stopped
-    container_name: kes-md-03
+      - elastic
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+    container_name: es03
     environment:
-      - cluster.name=kes-cluster
-      - node.name=kes-md-03
-      - discovery.seed_hosts=kes-md-02, kes-md-01
-      - cluster.initial_master_nodes=kes-md-01, kes-md-02, kes-md-03
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xms512m"
-      - http.port=9203
-      - http.host=0.0.0.0
-      - transport.port=9303
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - esdata3:/usr/share/elasticsearch/data
-    ports:
-       - 9203:92023
+      - data03:/usr/share/elasticsearch/data
     networks:
-      - esnet
-    mem_limit: 1g
+      - elastic
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.11.0
-    restart: unless-stopped
-    environment:
-      ELASTICSEARCH_URL: http://kes-md-01:9201/
-      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
-    ports:
-      - 5601:5601
-    volumes:
-      - kibanadata:/usr/share/kibana/data
-    networks:
-      - esnet
-    depends_on:
-      - 'kes-md-01'
-    mem_limit: 1g
-    
 volumes:
-  esdata1:
+  data01:
     driver: local
-  esdata2:
+  data02:
     driver: local
-  esdata3:
-    driver: local
-  kibanadata:
+  data03:
     driver: local
 
 networks:
-  esnet:
+  elastic:
     driver: bridge
